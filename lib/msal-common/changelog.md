@@ -1,8 +1,164 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 07 Dec 2020 22:19:03 GMT and should not be manually modified.
+This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.4.0
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Minor changes
+
+- Add CCS parameters to headers or form_data #3636 (prkanher@microsoft.com)
+- Add correlationId to log messages #3601 (joarroyo@microsoft.com)
+
+### Patches
+
+- Export ServerAuthorizationTokenResponse type #3657 (thomas.norling@microsoft.com)
+- Discard tokens cached after current time #3786 (thomas.norling@microsoft.com)
+- Remove input params from Empty Scopes error constructors #3654 (thomas.norling@microsoft.com)
+- feat: modify the access token filter #3375 (samuelkamau@microsoft.com)
+- fix: fix device code polling bug (samuelkamau@microsoft.com)
+
+## 4.3.0
+
+Wed, 12 May 2021 18:35:03 GMT
+
+### Minor changes
+
+- add support for regional authorities (samuelkamau@microsoft.com)
+
+### Patches
+
+- Fix double query string when authority endpoints contain query strings #3620 (thomas.norling@microsoft.com)
+- change msal-browser/msal-common to preserveModules to enable treeshaking #3300 (oo.thomas96@gmail.com)
+- Revert expiresOn type to make it nullable #3557 (hemoral@microsoft.com)
+- Add logLevel Trace to Logger #3589 (joarroyo@microsoft.com)
+- Throw untrustedAuthority error if discovery endpoint returns error in response body #3572 (thomas.norling@microsoft.com)
+- Add claims comparison to accountInfoIsEqual function #3527 (thomas.norling@microsoft.com)
+- Add check for empty object string in claims request parameter #3579 (prkanher@microsoft.com)
+
+## 4.2.1
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Patches
+
+- Fix typing for expiresOn field (#2994) (prkanher@microsoft.com)
+- Move /token headers to POST body to avoid OPTIONS request (#3094) (thomas.norling@microsoft.com)
+- Change "ts" type from string to number in SignedHttpRequest #3474 (prkanher@microsoft.com)
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
+
+## 4.2.0
+
+Wed, 14 Apr 2021 18:39:53 GMT
+
+### Minor changes
+
+- Adding the refresh_in feature for msal.js #3005 (prkanher@microsoft.com)
+- Add support for AccessToken_With_AuthScheme credential type #3426 (hectormgdev@gmail.com)
+
+### Patches
+
+- Make SHR parameters optional #3320 (hemoral@microsoft.com)
+
+## 4.1.1
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Patches
+
+- Update StringUtils.matchPattern to account for queries in string #3307 (joarroyo@microsoft.com)
+- Adds tokenQueryParameters request param #3309 (thomas.norling@microsoft.com)
+- Ignore account hints when prompt=select_account #3315 (thomas.norling@microsoft.com)
+
+## 4.1.0
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Minor changes
+
+- Add client claims support for SHRs (#3089) (hemoral@microsoft.com)
+
+### Patches
+
+- Properly handle expiration timestamps when returned as strings (janutter@microsoft.com)
+- Add null as possible type for account on EndSessionRequest #3044 (thomas.norling@microsoft.com)
+
+## 4.0.3
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Patches
+
+- Use sid from account when available #3147 (prkanher@microsoft.com)
+- Add network error for failed requests (#3146) (thomas.norling@microsoft.com)
+
+## 4.0.2
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Patches
+
+- Fix OIDC Scopes Caching Issue (#3065) (prkanher@microsoft.com)
+
+## 4.0.1
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Patches
+
+- Clarify Device Code Timeout units (#3031) (hemoral@microsoft.com)
+
+## 4.0.0
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Major changes
+
+- Add API Extractor for msal-node (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+- Setting postLogoutRedirectUri as null will disable post logout redirect (janutter@microsoft.com)
+- Ignore OIDC scopes during cache lookup or replacement (#2969) (prkanher@microsoft.com)
+
+## 3.1.0
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Minor changes
+
+- Add wrapper SKU and version to current telemetry header (#2845) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix token timestamp calculation (prkanher@microsoft.com)
+- Fix B2C policy switching (#2949) (thomas.norling@microsoft.com)
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
+
+## 3.0.0
+
+Thu, 21 Jan 2021 21:48:01 GMT
+
+### Major changes
+
+- Authority metadata caching (#2758) (thomas.norling@microsoft.com)
+
+## 2.1.0
+
+Tue, 12 Jan 2021 00:51:26 GMT
+
+### Minor changes
+
+- Add interface stubs (#2792) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Adding account info equality check function (#2728) (prkanher@microsoft.com)
+- Adding device code timeout to the device code request(#2656) (samuel.kamau@microsoft.com)
 
 ## 2.0.0
 

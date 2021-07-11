@@ -2,6 +2,66 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Tue, 29 Jun 2021 00:28:30 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.8",
+      "version": "1.0.0-alpha.8",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "verifyPersistence returns the right value on failure(#3787)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "dc8086acc0ccc91e066e886adffd5895911d33f0",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 23 Jun 2021 00:01:49 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.7",
+      "version": "1.0.0-alpha.7",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Add logs to test beachball",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "cc28e43b3dcdb45f2469b14cf52a223f7d59b0d9",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 05 Mar 2021 21:26:46 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.6",
+      "version": "1.0.0-alpha.6",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix lint in extensions to trigger version bump",
+            "author": "janutter@microsoft.com",
+            "commit": "4901e740f2687447f1eac537dac71ef243ce957a",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 Mar 2021 22:13:23 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.5",
+      "version": "1.0.0-alpha.5",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix npm audit warnings",
+            "author": "janutter@microsoft.com",
+            "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Oct 2020 23:45:07 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.4",
       "version": "1.0.0-alpha.4",

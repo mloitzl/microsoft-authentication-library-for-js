@@ -1,10 +1,10 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { apiConfig } from '../b2c-config';
 
 type ProfileType = {
-  name?: String
-}
+  name?: string
+};
 
 @Component({
   selector: 'app-profile',
@@ -25,7 +25,7 @@ export class ProfileComponent implements OnInit {
   getProfile(url: string) {
     this.http.get(url)
       .subscribe(profile => {
-        console.log(profile)
+        console.log(profile);
         this.profile = profile;
       });
   }

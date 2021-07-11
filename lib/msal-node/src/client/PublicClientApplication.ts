@@ -7,36 +7,38 @@ import { ApiId } from "../utils/Constants";
 import {
     DeviceCodeClient,
     AuthenticationResult,
-    DeviceCodeRequest as CommonDeviceCodeRequest,
-    UsernamePasswordRequest as CommonUsernamePasswordRequest,
+    CommonDeviceCodeRequest,
+    CommonUsernamePasswordRequest,
     UsernamePasswordClient
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
+import { IPublicClientApplication } from "./IPublicClientApplication";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
  * are not trusted to safely store application secrets, and therefore can only request tokens in the name of an user.
+ * @public
  */
-export class PublicClientApplication extends ClientApplication {
+export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
     /**
      * Important attributes in the Configuration object for auth are:
      * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal.
      * - authority: the authority URL for your application.
      *
-     * AAD authorities are of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}.
+     * AAD authorities are of the form https://login.microsoftonline.com/\{Enter_the_Tenant_Info_Here\}.
      * - If your application supports Accounts in one organizational directory, replace "Enter_the_Tenant_Info_Here" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com).
      * - If your application supports Accounts in any organizational directory, replace "Enter_the_Tenant_Info_Here" value with organizations.
      * - If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
      * - To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
      *
-     * Azure B2C authorities are of the form https://{instance}/{tenant}/{policy}. Each policy is considered
+     * Azure B2C authorities are of the form https://\{instance\}/\{tenant\}/\{policy\}. Each policy is considered
      * its own authority. You will have to set the all of the knownAuthorities at the time of the client application
      * construction.
      *
-     * ADFS authorities are of the form https://{instance}/adfs.
+     * ADFS authorities are of the form https://\{instance\}/adfs.
      */
     constructor(configuration: Configuration) {
         super(configuration);
@@ -52,19 +54,17 @@ export class PublicClientApplication extends ClientApplication {
      * until the end-user completes input of credentials.
      */
     public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByDeviceCode called");
-        const validRequest: CommonDeviceCodeRequest = {
-            ...request,
-            ...this.initializeBaseRequest(request)
-        };
+        this.logger.info("acquireTokenByDeviceCode called", request.correlationId);
+        const validRequest: CommonDeviceCodeRequest = Object.assign(request, this.initializeBaseRequest(request));
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
         try {
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager
             );
-            this.logger.verbose("Auth client config generated");
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
+            this.logger.verbose("Device code client created", validRequest.correlationId);
             return deviceCodeClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -80,10 +80,10 @@ export class PublicClientApplication extends ClientApplication {
      * Microsoft's documentation and recommendations are at:
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword
      *
-     * @param request
+     * @param request - UsenamePasswordRequest
      */
     async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByUsernamePassword called");
+        this.logger.info("acquireTokenByUsernamePassword called", request.correlationId);
         const validRequest: CommonUsernamePasswordRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
@@ -92,10 +92,11 @@ export class PublicClientApplication extends ClientApplication {
         try {
             const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager
             );
-            this.logger.verbose("Auth client config generated");
             const usernamePasswordClient = new UsernamePasswordClient(usernamePasswordClientConfig);
+            this.logger.verbose("Username password client created", validRequest.correlationId);
             return usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);

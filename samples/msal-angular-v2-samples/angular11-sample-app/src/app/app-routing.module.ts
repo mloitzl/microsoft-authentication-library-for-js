@@ -4,6 +4,9 @@ import { ProfileComponent } from './profile/profile.component';
 import { HomeComponent } from './home/home.component';
 import { MsalGuard } from '@azure/msal-angular';
 import { DetailComponent } from './detail/detail.component';
+import { FailedComponent } from './failed/failed.component';
+import { LogoutComponent } from './logout/logout.component';
+import { BrowserUtils } from '@azure/msal-browser';
 
 const routes: Routes = [
   {
@@ -34,15 +37,23 @@ const routes: Routes = [
   {
     path: '',
     component: HomeComponent
+  },
+  {
+    path: 'login-failed',
+    component: FailedComponent
+  },
+  {
+      path: 'logout',
+      component: LogoutComponent
   }
 ];
 
-const isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
+const isIframe = BrowserUtils.isInIframe() && !window.opener && window.location.href.indexOf("logout") < 0; // Remove this line to use Angular Universal
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
     useHash: true,
-    // Don't perform initial navigation in iframes
+    // Don't perform initial navigation in iframes ort popups, except for logout
     initialNavigation: !isIframe ? 'enabled' : 'disabled' // Remove this line to use Angular Universal
   })],
   exports: [RouterModule]

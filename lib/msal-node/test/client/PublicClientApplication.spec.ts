@@ -7,7 +7,6 @@ import {
     Authority,
     AuthorityFactory,
     AuthorizationCodeClient,
-    Constants,
     DeviceCodeClient,
     RefreshTokenClient,
     ClientConfiguration,
@@ -19,11 +18,14 @@ import {
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { DeviceCodeRequest } from "../../src/request/DeviceCodeRequest";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
+import { NodeStorage } from "../../src/cache/NodeStorage";
+import { HttpClient } from "../../src/network/HttpClient";
 
 jest.mock('@azure/msal-common');
 
 describe('PublicClientApplication', () => {
     const authority: Authority = {
+        regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
         resolveEndpointsAsync: () => {
             return new Promise<void>(resolve => {
                 resolve();
@@ -32,7 +34,7 @@ describe('PublicClientApplication', () => {
         discoveryComplete: () => {
             return true;
         },
-    } as Authority;
+    } as unknown as Authority;
 
     let appConfig: Configuration = {
         auth: {
@@ -45,10 +47,7 @@ describe('PublicClientApplication', () => {
         authOptions: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
             authority: authority,
-            knownAuthorities: [],
-            cloudDiscoveryMetadata: "",
-            clientCapabilities: [],
-            protocolMode: ProtocolMode.AAD
+            clientCapabilities: []
         },
     };
 
@@ -73,7 +72,7 @@ describe('PublicClientApplication', () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByDeviceCode(request);
@@ -90,7 +89,7 @@ describe('PublicClientApplication', () => {
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request);
@@ -106,7 +105,7 @@ describe('PublicClientApplication', () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
@@ -122,7 +121,7 @@ describe('PublicClientApplication', () => {
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.getAuthCodeUrl(request);
@@ -145,19 +144,23 @@ describe('PublicClientApplication', () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
+        const authorityMock = mocked(AuthorityFactory.createDiscoveredInstance);
+        authorityMock.mockResolvedValue(authority);
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(AuthorityFactory.createInstance).toHaveBeenCalledWith(
-            Constants.DEFAULT_AUTHORITY,
-            {},
-            ProtocolMode.AAD
-        );
+        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.DEFAULT_AUTHORITY);
+        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [],
+            azureRegionConfiguration: undefined,
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: ""
+        });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
-        expect(RefreshTokenClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
+        expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
 
     test('authority overridden by acquire token request parameters', async () => {
@@ -168,19 +171,23 @@ describe('PublicClientApplication', () => {
             authority: TEST_CONSTANTS.ALTERNATE_AUTHORITY,
         };
 
-        mocked(AuthorityFactory.createInstance).mockReturnValue(authority);
+        const authorityMock = mocked(AuthorityFactory.createDiscoveredInstance);
+        authorityMock.mockResolvedValue(authority);
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(AuthorityFactory.createInstance).toHaveBeenCalledWith(
-            TEST_CONSTANTS.ALTERNATE_AUTHORITY,
-            {},
-            ProtocolMode.AAD
-        );
+        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.ALTERNATE_AUTHORITY);
+        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [],
+            azureRegionConfiguration: undefined,
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: ""
+        });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
-        expect(RefreshTokenClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
+        expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
 
     test("getLogger and setLogger", async () => {

@@ -6,23 +6,29 @@
 import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
-import { ApiId } from "../utils/Constants";
+import { ApiId , REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
 import {
     ClientCredentialClient,
     OnBehalfOfClient,
+    CommonClientCredentialRequest,
+    CommonOnBehalfOfRequest,
     AuthenticationResult,
     StringUtils,
     ClientAuthError,
-    ClientCredentialRequest as CommonClientCredentialRequest,
-    OnBehalfOfRequest as CommonOnBehalfOfRequest
+    AzureRegionConfiguration
 } from "@azure/msal-common";
+import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 
-export class ConfidentialClientApplication extends ClientApplication {
+/**
+ *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
+ *  will configure application secrets, client certificates/assertions as applicable
+ * @public
+ */
+export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication{
 
     /**
-     * @constructor
      * Constructor for the ConfidentialClientApplication
      *
      * Required attributes in the Configuration object are:
@@ -30,16 +36,16 @@ export class ConfidentialClientApplication extends ClientApplication {
      * - authority: the authority URL for your application.
      * - client credential: Must set either client secret, certificate, or assertion for confidential clients. You can obtain a client secret from the application registration portal.
      *
-     * In Azure AD, authority is a URL indicating of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}.
+     * In Azure AD, authority is a URL indicating of the form https://login.microsoftonline.com/\{Enter_the_Tenant_Info_Here\}.
      * If your application supports Accounts in one organizational directory, replace "Enter_the_Tenant_Info_Here" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com).
      * If your application supports Accounts in any organizational directory, replace "Enter_the_Tenant_Info_Here" value with organizations.
      * If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
      * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
      *
-     * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
+     * In Azure B2C, authority is of the form https://\{instance\}/tfp/\{tenant\}/\{policyName\}/
      * Full B2C functionality will be available in this library in future versions.
      *
-     * @param {@link (Configuration:type)} configuration object for the MSAL ConfidentialClientApplication instance
+     * @param Configuration - configuration object for the MSAL ConfidentialClientApplication instance
      */
     constructor(configuration: Configuration) {
         super(configuration);
@@ -50,19 +56,25 @@ export class ConfidentialClientApplication extends ClientApplication {
      * Acquires tokens from the authority for the application (not for an end user).
      */
     public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByClientCredential called");
+        this.logger.info("acquireTokenByClientCredential called", request.correlationId);
         const validRequest: CommonClientCredentialRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
+        };
+        const azureRegionConfiguration: AzureRegionConfiguration = {
+            azureRegion: validRequest.azureRegion,
+            environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE] 
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
-                serverTelemetryManager
+                validRequest.correlationId,
+                serverTelemetryManager,
+                azureRegionConfiguration,
             );
-            this.logger.verbose("Auth client config generated");
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
+            this.logger.verbose("Client credential client created", validRequest.correlationId);
             return clientCredentialClient.acquireToken(validRequest);
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -82,16 +94,17 @@ export class ConfidentialClientApplication extends ClientApplication {
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#gaining-consent-for-the-middle-tier-application
      */
     public async acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenOnBehalfOf called");
+        this.logger.info("acquireTokenOnBehalfOf called", request.correlationId);
         const validRequest: CommonOnBehalfOfRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
         const clientCredentialConfig = await this.buildOauthClientConfiguration(
-            validRequest.authority
+            validRequest.authority,
+            validRequest.correlationId
         );
-        this.logger.verbose("Auth client config generated");
         const oboClient = new OnBehalfOfClient(clientCredentialConfig);
+        this.logger.verbose("On behalf of client created", validRequest.correlationId);
         return oboClient.acquireToken(validRequest);
     }
 

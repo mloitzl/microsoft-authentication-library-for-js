@@ -8,10 +8,10 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType, AADServerParamKeys , CredentialType, Constants } from "../utils/Constants";
+import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
+import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
 import { TimeUtils } from "../utils/TimeUtils";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
@@ -37,7 +37,7 @@ export class OnBehalfOfClient extends BaseClient {
      * Public API to acquire tokens with on behalf of flow
      * @param request
      */
-    public async acquireToken(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
+    public async acquireToken(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
         this.scopeSet = new ScopeSet(request.scopes || []);
 
         if (request.skipCache) {
@@ -56,10 +56,14 @@ export class OnBehalfOfClient extends BaseClient {
      * look up cache for tokens
      * @param request
      */
-    private async getCachedAuthenticationResult(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
-        const cachedAccessToken = this.readAccessTokenFromCache(request);
+    private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
+        const cachedAccessToken = this.readAccessTokenFromCache();
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+
+            // Update the server telemetry outcome
+            this.serverTelemetryManager?.setCacheOutcome(!cachedAccessToken ? CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED : CacheOutcome.NO_CACHED_ACCESS_TOKEN);
+
             return null;
         }
 
@@ -89,21 +93,23 @@ export class OnBehalfOfClient extends BaseClient {
                 idToken: cachedIdToken,
                 refreshToken: null,
                 appMetadata: null
-            }, true, idTokenObject);
+            },
+            true,
+            request,
+            idTokenObject);
     }
 
     /**
      * read access token from cache TODO: CacheManager API should be used here
      * @param request
      */
-    private readAccessTokenFromCache(request: OnBehalfOfRequest): AccessTokenEntity | null {
+    private readAccessTokenFromCache(): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
             target: this.scopeSet.printScopesLowerCase(),
-            oboAssertion: request.oboAssertion
         };
 
         const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
@@ -122,7 +128,7 @@ export class OnBehalfOfClient extends BaseClient {
      * read idtoken from cache TODO: CacheManager API should be used here instead
      * @param request
      */
-    private readIdTokenFromCache(request: OnBehalfOfRequest): IdTokenEntity | null {
+    private readIdTokenFromCache(request: CommonOnBehalfOfRequest): IdTokenEntity | null {
         const idTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ID_TOKEN,
@@ -153,17 +159,18 @@ export class OnBehalfOfClient extends BaseClient {
      * @param request
      * @param authority
      */
-    private async executeTokenRequest(request: OnBehalfOfRequest, authority: Authority)
+    private async executeTokenRequest(request: CommonOnBehalfOfRequest, authority: Authority)
         : Promise<AuthenticationResult | null> {
 
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
             scopes: request.scopes
         };
 
+        const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
 
         const responseHandler = new ResponseHandler(
@@ -179,11 +186,8 @@ export class OnBehalfOfClient extends BaseClient {
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
-            request.resourceRequestMethod,
-            request.resourceRequestUri,
-            undefined,
-            request.scopes,
-            request.oboAssertion
+            reqTimestamp,
+            request
         );
 
         return tokenResponse;
@@ -193,7 +197,7 @@ export class OnBehalfOfClient extends BaseClient {
      * generate a server request in accepable format
      * @param request
      */
-    private createTokenRequestBody(request: OnBehalfOfRequest): string {
+    private createTokenRequestBody(request: CommonOnBehalfOfRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -203,6 +207,14 @@ export class OnBehalfOfClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.JWT_BEARER);
 
         parameterBuilder.addClientInfo();
+
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        parameterBuilder.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+        }
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);

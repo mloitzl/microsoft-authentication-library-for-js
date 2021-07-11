@@ -47,7 +47,7 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidPrompt: {
         code: "invalid_prompt_value",
-        desc: "Supported prompt values are 'login', 'select_account', 'consent' and 'none'.  Please see here for valid configuration options: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications#configuration-options",
+        desc: "Supported prompt values are 'login', 'select_account', 'consent', 'create' and 'none'.  Please see here for valid configuration options: https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#commonauthorizationurlrequest",
     },
     invalidClaimsRequest: {
         code: "invalid_claims",
@@ -69,21 +69,17 @@ export const ClientConfigurationErrorMessage = {
         code: "pkce_params_missing",
         desc: "Both params: code_challenge and code_challenge_method are to be passed if to be sent in the request"
     },
-    knownAuthoritiesAndCloudDiscoveryMetadata: {
-        code: "invalid_known_authorities",
-        desc: "knownAuthorities and cloudDiscoveryMetadata cannot both be provided. Please provide cloudDiscoveryMetadata object for AAD, knownAuthorities otherwise."
-    },
     invalidCloudDiscoveryMetadata: {
         code: "invalid_cloud_discovery_metadata",
         desc: "Invalid cloudDiscoveryMetadata provided. Must be a JSON object containing tenant_discovery_endpoint and metadata fields"
     },
+    invalidAuthorityMetadata: {
+        code: "invalid_authority_metadata",
+        desc: "Invalid authorityMetadata provided. Must by a JSON object containing authorization_endpoint, token_endpoint, end_session_endpoint, issuer fields."
+    },
     untrustedAuthority: {
         code: "untrusted_authority",
         desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
-    },
-    resourceRequestParametersRequired: {
-        code: "resourceRequest_parameters_required",
-        desc: "resourceRequestMethod and resourceRequestUri are required"
     }
 };
 
@@ -150,21 +146,12 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     /**
-     * Error thrown when scopes are not an array
-     * @param inputScopes
-     */
-    static createScopesNonArrayError(inputScopes: Array<string>): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopesError.code,
-            `${ClientConfigurationErrorMessage.nonArrayScopesError.desc} Given Scopes: ${inputScopes}`);
-    }
-
-    /**
      * Error thrown when scopes are empty.
      * @param scopesValue
      */
-    static createEmptyScopesArrayError(inputScopes: Array<string>): ClientConfigurationError {
+    static createEmptyScopesArrayError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopesError.code,
-            `${ClientConfigurationErrorMessage.emptyScopesError.desc} Given Scopes: ${inputScopes}`);
+            `${ClientConfigurationErrorMessage.emptyScopesError.desc}`);
     }
 
     /**
@@ -234,14 +221,6 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     /**
-     * Throws an error when the user passes both knownAuthorities and cloudDiscoveryMetadata
-     */
-    static createKnownAuthoritiesCloudDiscoveryMetadataError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.knownAuthoritiesAndCloudDiscoveryMetadata.code,
-            ClientConfigurationErrorMessage.knownAuthoritiesAndCloudDiscoveryMetadata.desc);
-    }
-
-    /**
      * Throws an error when the user passes invalid cloudDiscoveryMetadata
      */
     static createInvalidCloudDiscoveryMetadataError(): ClientConfigurationError {
@@ -250,18 +229,18 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     /**
+     * Throws an error when the user passes invalid cloudDiscoveryMetadata
+     */
+    static createInvalidAuthorityMetadataError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAuthorityMetadata.code,
+            ClientConfigurationErrorMessage.invalidAuthorityMetadata.desc);
+    }
+
+    /**
      * Throws error when provided authority is not a member of the trusted host list
      */
     static createUntrustedAuthorityError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
             ClientConfigurationErrorMessage.untrustedAuthority.desc);
-    }
-
-    /**
-     * Throws error when resourceRequestMethod or resourceRequestUri is missing
-     */
-    static createResourceRequestParametersRequiredError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.resourceRequestParametersRequired.code,
-            ClientConfigurationErrorMessage.resourceRequestParametersRequired.desc);
     }
 }

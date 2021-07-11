@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { AccountInfo, IPublicClientApplication } from "@azure/msal-browser";
+import { AccountInfo, IPublicClientApplication, InteractionStatus, AccountEntity } from "@azure/msal-browser";
 import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 
@@ -31,14 +31,22 @@ function getAccount(instance: IPublicClientApplication, accountIdentifiers: Acco
     }
 }
 
+/**
+ * Given 1 or more accountIdentifiers, returns the Account object if the user is signed-in
+ * @param accountIdentifiers 
+ */
 export function useAccount(accountIdentifiers: AccountIdentifiers): AccountInfo | null {
     const { instance, inProgress } = useMsal();
 
-    const [account, setAccount] = useState<AccountInfo|null>(null);
+    const initialStateValue = inProgress === InteractionStatus.Startup ? null : getAccount(instance, accountIdentifiers);
+    const [account, setAccount] = useState<AccountInfo|null>(initialStateValue);
 
     useEffect(() => {
-        setAccount(getAccount(instance, accountIdentifiers));
-    }, [inProgress, accountIdentifiers, instance]);
+        const currentAccount = getAccount(instance, accountIdentifiers);
+        if (!AccountEntity.accountInfoIsEqual(account, currentAccount, true)) {
+            setAccount(currentAccount);
+        }
+    }, [inProgress, accountIdentifiers, instance, account]);
 
     return account;
 }

@@ -3,12 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, IdTokenEntity, RefreshTokenEntity } from "../../src";
+import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, ICrypto, IdTokenEntity, RefreshTokenEntity } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
 
 export class MockCache {
+    cacheManager: MockStorageClass;
 
-    cacheManager = new MockStorageClass();
+    constructor(clientId: string, cryptoImpl: ICrypto) {
+        this.cacheManager = new MockStorageClass(clientId, cryptoImpl);
+    }
 
     // initialize the cache
     initializeCache(): void {
@@ -66,7 +69,8 @@ export class MockCache {
             "cachedAt": "1000",
             "homeAccountId": "uid.utid",
             "extendedExpiresOn": "4600",
-            "expiresOn": "4600"
+            "expiresOn": "4600",
+            "tokenType": "Bearer"
         };
         const atOne = CacheManager.toObject(new AccessTokenEntity(), atOneData);
         this.cacheManager.setAccessTokenCredential(atOne);
@@ -81,10 +85,27 @@ export class MockCache {
             "cachedAt": "1000",
             "homeAccountId": "uid.utid",
             "extendedExpiresOn": "4600",
-            "expiresOn": "4600"
+            "expiresOn": "4600",
+            "tokenType": "Bearer"
         };
         const atTwo = CacheManager.toObject(new AccessTokenEntity(), atTwoData);
         this.cacheManager.setAccessTokenCredential(atTwo);
+
+        const atWithAuthSchemeData = {
+            "environment": "login.microsoftonline.com",
+            "credentialType": "AccessToken_With_AuthScheme",
+            "secret": "an access token",
+            "realm": "microsoft",
+            "target": "scope1 scope2 scope3",
+            "clientId": "mock_client_id",
+            "cachedAt": "1000",
+            "homeAccountId": "uid.utid",
+            "extendedExpiresOn": "4600",
+            "expiresOn": "4600",
+            "tokenType": "pop"
+        };
+        const atWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), atWithAuthSchemeData);
+        this.cacheManager.setAccessTokenCredential(atWithAuthScheme);
     }
 
     // create refresh token entries in the cache

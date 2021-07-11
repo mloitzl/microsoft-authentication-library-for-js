@@ -8,10 +8,10 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType , CredentialType } from "../utils/Constants";
+import { GrantType , CredentialType, CacheOutcome } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
+import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../utils/TimeUtils";
@@ -34,7 +34,7 @@ export class ClientCredentialClient extends BaseClient {
      * Public API to acquire a token with ClientCredential Flow for Confidential clients
      * @param request
      */
-    public async acquireToken(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
+    public async acquireToken(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null> {
 
         this.scopeSet = new ScopeSet(request.scopes || []);
 
@@ -42,7 +42,7 @@ export class ClientCredentialClient extends BaseClient {
             return await this.executeTokenRequest(request, this.authority);
         }
 
-        const cachedAuthenticationResult = await this.getCachedAuthenticationResult();
+        const cachedAuthenticationResult = await this.getCachedAuthenticationResult(request);
         if (cachedAuthenticationResult) {
             return cachedAuthenticationResult;
         } else {
@@ -53,10 +53,17 @@ export class ClientCredentialClient extends BaseClient {
     /**
      * looks up cache if the tokens are cached already
      */
-    private async getCachedAuthenticationResult(): Promise<AuthenticationResult | null> {
+    private async getCachedAuthenticationResult(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null> {
+        
         const cachedAccessToken = this.readAccessTokenFromCache();
-        if (!cachedAccessToken ||
-            TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+
+        if (!cachedAccessToken) {
+            this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.NO_CACHED_ACCESS_TOKEN);
+            return null;
+        }
+
+        if (TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+            this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED);
             return null;
         }
 
@@ -70,7 +77,8 @@ export class ClientCredentialClient extends BaseClient {
                 refreshToken: null,
                 appMetadata: null
             },
-            true
+            true,
+            request
         );
     }
 
@@ -102,17 +110,18 @@ export class ClientCredentialClient extends BaseClient {
      * @param request
      * @param authority
      */
-    private async executeTokenRequest(request: ClientCredentialRequest, authority: Authority)
+    private async executeTokenRequest(request: CommonClientCredentialRequest, authority: Authority)
         : Promise<AuthenticationResult | null> {
 
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
             scopes: request.scopes
         };
 
+        const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
 
         const responseHandler = new ResponseHandler(
@@ -128,10 +137,8 @@ export class ClientCredentialClient extends BaseClient {
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
-            request.resourceRequestMethod,
-            request.resourceRequestUri,
-            undefined,
-            request.scopes
+            reqTimestamp,
+            request
         );
 
         return tokenResponse;
@@ -141,7 +148,7 @@ export class ClientCredentialClient extends BaseClient {
      * generate the request to the server in the acceptable format
      * @param request
      */
-    private createTokenRequestBody(request: ClientCredentialRequest): string {
+    private createTokenRequestBody(request: CommonClientCredentialRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -149,6 +156,14 @@ export class ClientCredentialClient extends BaseClient {
         parameterBuilder.addScopes(request.scopes, false);
 
         parameterBuilder.addGrantType(GrantType.CLIENT_CREDENTIALS_GRANT);
+
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        parameterBuilder.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+        }
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
@@ -163,7 +178,7 @@ export class ClientCredentialClient extends BaseClient {
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
 
-        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 

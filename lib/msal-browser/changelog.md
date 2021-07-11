@@ -1,8 +1,159 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 07 Dec 2020 22:19:03 GMT and should not be manually modified.
+This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.15.0
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Minor changes
+
+- Add correlationId to log messages #3601 (joarroyo@microsoft.com)
+- Add CCS parameters to headers or form_data #3636 (prkanher@microsoft.com)
+
+### Patches
+
+- Update monitor_window_timeout error message with link to error docs #3783 (thomas.norling@microsoft.com)
+- Refactor event APIs into EventHandler class #3770 (thomas.norling@microsoft.com)
+- Fix logoutPopup parameter type on IPublicClientApplication #3663 (thomas.norling@microsoft.com)
+
+## 2.14.2
+
+Wed, 12 May 2021 18:35:03 GMT
+
+### Patches
+
+- Adjust log messages #3589 (joarroyo@microsoft.com)
+- Fix hash removal from URL and browser history after interactive request #3609 (hemoral@microsoft.com)
+- Update account equality check #3527 (thomas.norling@microsoft.com)
+- Close popup if error is thrown before popup window navigation occurs #3572 (thomas.norling@microsoft.com)
+- change msal-browser/msal-common to preserveModules to enable tree-shaking #3300 (oo.thomas96@gmail.com)
+
+## 2.14.1
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Patches
+
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
+- Look for temp cache items in local storage as fallback #3509 (janutter@microsoft.com)
+
+## 2.14.0
+
+Wed, 14 Apr 2021 18:39:53 GMT
+
+### Minor changes
+
+- Add support for AccessToken_With_AuthScheme credential type #3426 (hectormgdev@gmail.com)
+
+### Patches
+
+- Make SHR parameters optional (#3320) (hemoral@microsoft.com)
+
+## 2.13.1
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Patches
+
+- Export PopupEvent #3360 (joarroyo@microsoft.com)
+
+## 2.13.0
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Minor changes
+
+- Add logoutPopup API #3044 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix errors thrown on cache lookups when reading non-msal cache values #3245 (thomas.norling@microsoft.com)
+- Update blockReloadInIframe error message with link to error doc #3294 (thomas.norling@microsoft.com)
+- Block nested popups #3249 (thomas.norling@microsoft.com)
+
+## 2.12.1
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Patches
+
+- Clear temporary cache cookies on page load #3129 (prkanher@microsoft.com)
+- Throw BrowserAuthError when fetch fails #3146 (thomas.norling@microsoft.com)
+
+## 2.12.0
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Minor changes
+
+- Add option to make MSAL browser cookies secure (#3001) (hemoral@microsoft.com)
+- Add setNavigationClient API and expose INavigationClient interface (#2985) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Separate telemetry for ssoSilent and ATS iframe renewal (#3064) (thomas.norling@microsoft.com)
+- Add instrumentation to msal-browser (#3004) (joarroyo@microsoft.com)
+- Memoize multiple calls to handleRedirectPromise (#3072) (thomas.norling@microsoft.com)
+
+## 2.11.2
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Patches
+
+- Ensure scrollbars are enabled for popups in browser (janutter@microsoft.com)
+
+## 2.11.1
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Patches
+
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+- Add missing network types to browser exports (#2995) (prkanher@microsoft.com)
+- Ignore OIDC scopes during cache lookup or replacement (#2969) (prkanher@microsoft.com)
+- Allow apps to not use the current page as default postLogoutRedirectUri in MSAL Browser (#2789) (janutter@microsoft.com)
+- Fix PCA stub errors (#2963) (thomas.norling@microsoft.com)
+
+## 2.11.0
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Minor changes
+
+- Add initializeWrapperLibrary API (#2845) (thomas.norling@microsoft.com)
+- Add getInteractionStatusFromEvent to msal-browser (#2885) (joarroyo@microsoft.com)
+
+### Patches
+
+- Fix temp cache cleanup when using localStorage (#2935) (thomas.norling@microsoft.com)
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
+
+## 2.10.0
+
+Thu, 21 Jan 2021 21:48:01 GMT
+
+### Minor changes
+
+- Authority metadata caching (#2758) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix handling of multiple popup windows (#2842) (janutter@microsoft.com)
+- redirectStartPage supports relative URIs (#2866) (thomas.norling@microsoft.com)
+
+## 2.9.0
+
+Tue, 12 Jan 2021 00:51:26 GMT
+
+### Minor changes
+
+- Adding an active account API to PublicClientApplication (#2728) (prkanher@microsoft.com)
+- Add internal in-memory storage to BrowserCacheManager (#2765) (thomas.norling@microsoft.com)
+- Enable strict TypeScript option (#2792) (thomas.norling@microsoft.com)
 
 ## 2.8.0
 

@@ -1,8 +1,102 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 07 Dec 2020 22:19:03 GMT and should not be manually modified.
+This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.2.0
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Minor changes
+
+- Add correlationId to log messages #3601 (joarroyo@microsoft.com)
+
+### Patches
+
+- fix: have the log level propagate to msal-common (samuelkamau@microsoft.com)
+- fix: update the client capabilities type in configuration #3678 (samuelkamau@microsoft.com)
+
+## 1.1.0
+
+Wed, 12 May 2021 18:35:03 GMT
+
+### Minor changes
+
+- Add Node 16 to msal-node supported versions (janutter@microsoft.com)
+- add support for regional authorities (samuelkamau@microsoft.com)
+
+## 1.0.3
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Patches
+
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
+
+## 1.0.2
+
+Wed, 14 Apr 2021 18:39:53 GMT
+
+### Patches
+
+- feat: fix the device code cancellation flag (samuelkamau@microsoft.com)
+- Add support for AccessToken_With_AuthScheme credential type #3426 (hectormgdev@gmail.com)
+
+## 1.0.0
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Patches
+
+- update msal-node landing page & samples page (dogan.erisen@gmail.com)
+
+### Changes
+
+- ADD FAQs (#3038) (sameera.gajjarapu@microsoft.com)
+- Update node version support in package.json(#2998) (sameera.gajjarapu@microsoft.com)
+
+## 1.0.0-beta.6
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Changes
+
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+- Ignore OIDC scopes during cache lookup or replacement (#2969) (prkanher@microsoft.com)
+- Set the validateStatus locally than globally for `axios` (#2959) (sameera.gajjarapu@microsoft.com)
+- Add API Extractor for msal-node (sameera.gajjarapu@microsoft.com)
+
+## 1.0.0-beta.5
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Changes
+
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
+- Add interfaces to public APIs in msal-node (#2623) (sameera.gajjarapu@microsoft.com)
+
+## 1.0.0-beta.4
+
+Thu, 21 Jan 2021 21:48:01 GMT
+
+### Changes
+
+- Authority metadata caching (#2758) (thomas.norling@microsoft.com)
+
+## 1.0.0-beta.3
+
+Tue, 12 Jan 2021 00:51:26 GMT
+
+### Patches
+
+- change the code challenge encoding to uniform base64 (samuel.kamau@microsoft.com)
+
+### Changes
+
+- ClientAssertion.parseCertificate - allow newlines in cert (#2721). (email not defined)
+- feat: bump up the axios version on msal-node (samuel.kamau@microsoft.com)
+- Add getKVStore to tokenCache (#2771) (thomas.norling@microsoft.com)
 
 ## 1.0.0-beta.2
 

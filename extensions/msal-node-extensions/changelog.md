@@ -1,8 +1,40 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Wed, 14 Oct 2020 23:45:07 GMT and should not be manually modified.
+This log was last generated on Tue, 29 Jun 2021 00:28:30 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.8
+
+Tue, 29 Jun 2021 00:28:30 GMT
+
+### Changes
+
+- verifyPersistence returns the right value on failure(#3787) (sameera.gajjarapu@microsoft.com)
+
+## 1.0.0-alpha.7
+
+Wed, 23 Jun 2021 00:01:49 GMT
+
+### Changes
+
+- Add logs to test beachball (sameera.gajjarapu@microsoft.com)
+
+## 1.0.0-alpha.6
+
+Fri, 05 Mar 2021 21:26:46 GMT
+
+### Changes
+
+- Fix lint in extensions to trigger version bump (janutter@microsoft.com)
+
+## 1.0.0-alpha.5
+
+Wed, 03 Mar 2021 22:13:23 GMT
+
+### Changes
+
+- Fix npm audit warnings (janutter@microsoft.com)
 
 ## 1.0.0-alpha.4
 

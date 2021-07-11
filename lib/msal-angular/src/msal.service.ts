@@ -8,16 +8,19 @@ import { Location } from "@angular/common";
 import {
     IPublicClientApplication,
     EndSessionRequest,
+    EndSessionPopupRequest,
     AuthenticationResult,
     RedirectRequest,
     SilentRequest,
     PopupRequest,
     SsoSilentRequest,
-    Logger
+    Logger,
+    WrapperSKU
 } from "@azure/msal-browser";
-import { MSAL_INSTANCE, name, version } from "./constants";
+import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
+import { name, version } from "./packageMetadata";
 
 @Injectable()
 export class MsalService implements IMsalService {
@@ -32,6 +35,7 @@ export class MsalService implements IMsalService {
         if (hash) {
             this.redirectHash = `#${hash}`;
         }
+        this.instance.initializeWrapperLibrary(WrapperSKU.Angular, version);
     }
 
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
@@ -43,10 +47,8 @@ export class MsalService implements IMsalService {
     acquireTokenSilent(silentRequest: SilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.acquireTokenSilent(silentRequest));
     }
-    handleRedirectObservable(): Observable<AuthenticationResult> {
-        const handleRedirect = from(this.instance.handleRedirectPromise(this.redirectHash));
-        this.redirectHash = "";
-        return handleRedirect;
+    handleRedirectObservable(hash?: string): Observable<AuthenticationResult> {
+        return from(this.instance.handleRedirectPromise(hash || this.redirectHash));
     }
     loginPopup(request?: PopupRequest): Observable<AuthenticationResult> {
         return from(this.instance.loginPopup(request));
@@ -57,15 +59,26 @@ export class MsalService implements IMsalService {
     logout(logoutRequest?: EndSessionRequest): Observable<void> {
         return from(this.instance.logout(logoutRequest));
     }
+    logoutRedirect(logoutRequest?: EndSessionRequest): Observable<void> {
+        return from(this.instance.logoutRedirect(logoutRequest));
+    }
+    logoutPopup(logoutRequest?: EndSessionPopupRequest): Observable<void> {
+        return from(this.instance.logoutPopup(logoutRequest));
+    }
     ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.ssoSilent(request));
     }
+    /**
+     * Gets logger for msal-angular.
+     * If no logger set, returns logger instance created with same options as msal-browser
+     */
     getLogger(): Logger {
         if (!this.logger) {
             this.logger = this.instance.getLogger().clone(name, version);
         }
         return this.logger;
     }
+    // Create a logger instance for msal-angular with the same options as msal-browser
     setLogger(logger: Logger): void {
         this.logger = logger.clone(name, version);
         this.instance.setLogger(logger);
